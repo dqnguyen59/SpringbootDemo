@@ -115,7 +115,6 @@ _______________________________________________________________________________
 
 	Change default admin password here: InitServerContext.java
 
-	Check this link for a working demo:
-<a href="https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html" target="_blank" rel="noopener">https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html</a>
+	Check this link for a working demo: <a href="https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html" target="_blank" rel="noopener">https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html</a>
 _______________________________________________________________________________
 
