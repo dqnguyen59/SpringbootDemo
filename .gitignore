@@ -1,0 +1,82 @@
+# Ignore MacOS Finder metadata
+.DS_Store
+
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+
+# Eclipse
+.metadata
+**/.settings/language.settings.xml
+**/.settings/org.eclipse.cdt.managedbuilder.core.prefs
+**/.settings/org.eclipse.cdt.core.prefs
+**/.settings/com.st.stm32cube.ide.mcu.sfrview.prefs
+.cproject
+.project
+
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+eclipse-ws/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# vscode
+.vscode/settings.json
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# PyCharm/IntelliJ/CLion
+/.idea/workspace.xml
+/.idea/libraries
+/.idea/caches
+
+### VS Code ###
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
+*.swp
+.venv/
+
+# Java
+.gradle/
+
+# Nodejs
+node_modules/
+
+# Project
+**/build/
+out/**
+local.properties
+
+# Testing
+
+# Personal code snippets, dump, etc
+snippets/**
+/install.sh
