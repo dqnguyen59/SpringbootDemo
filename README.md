@@ -107,15 +107,15 @@ Todo: Tomcat installation
 _______________________________________________________________________________
 ## Swagger UI
 
-	After successfully running the application, the link below can be accessed.
+After successfully running the application, the link below can be accessed.
 
-	http://localhost:8888/swagger-ui/index.html
+http://localhost:8888/swagger-ui/index.html
 
-	Username: sysadmin
-	Password: password
+Username: sysadmin
+Password: password
 
-	Change default admin password here: InitServerContext.java
+Change default admin password here: InitServerContext.java
 
-	Check this link for a working demo: <a href="https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html">https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html</a>
+Check this link for a working demo: <a href="https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html">https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html</a>
 _______________________________________________________________________________
 
