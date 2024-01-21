@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.smartblackbox.springbootdemo.datamodel.auth.Role;
-import org.smartblackbox.springbootdemo.datamodel.auth.Role.RoleEnum;
+import org.smartblackbox.springbootdemo.datamodel.enums.RoleType;
 import org.smartblackbox.springbootdemo.repository.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -40,7 +40,7 @@ public class RolesService {
     	repository.deleteById(id);
     }
 
-    public Optional<Role> findByRole(RoleEnum role) {
+    public Optional<Role> findByRole(RoleType role) {
         return repository.findByRole(role);
     }
 
@@ -48,7 +48,7 @@ public class RolesService {
 		String result = "";
 
 		for (Role role : findAll(true)) {
-			result += (result.isEmpty()? "" : ", ") + role.getName().toString(); 
+			result += (result.isEmpty()? "" : ", ") + role.getType().getName(); 
 		}
 		return result;
 	}

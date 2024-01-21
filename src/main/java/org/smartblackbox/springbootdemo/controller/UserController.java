@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
-import org.smartblackbox.springbootdemo.datamodel.auth.Role;
 import org.smartblackbox.springbootdemo.datamodel.auth.User;
 import org.smartblackbox.springbootdemo.datamodel.dto.UpdateUserDTO;
+import org.smartblackbox.springbootdemo.datamodel.enums.RoleType;
 import org.smartblackbox.springbootdemo.datamodel.response.UserDTO;
 import org.smartblackbox.springbootdemo.datamodel.response.exception.DefaultExceptionDTO;
 import org.smartblackbox.springbootdemo.service.UserService;
@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -71,7 +70,7 @@ public class UserController {
 			@Content(mediaType = "application/json", schema = @Schema(implementation = DefaultExceptionDTO.class))
 		}),
 	})
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/{id}")
 	public ResponseEntity<UserDTO> findById(@PathVariable("id") int id) {
 		SpringUtils.getAndValidateUser();
@@ -100,8 +99,7 @@ public class UserController {
 	 * All fields of updateUserDTO are optional.
 	 * If a field is not included, then it will not be updated.
 	 * 
-	 * The logged in user can only modify their own account.
-	 * If the logged in user has an admin role, then their own and other accounts can be modified.
+	 * The logged in user can only modify their own account or users that have a lower role level.
 	 * 
 	 * @param id
 	 * @param updateUserDTO
@@ -130,34 +128,30 @@ public class UserController {
 		User loggedInUser = SpringUtils.getAndValidateUser();
 		Optional<User> user = userService.findById(id);
 
-		boolean isAdmin = loggedInUser.hasRole(Role.RoleEnum.ROLE_ADMIN);
+		int loggedInUserHighestRoleLevel = loggedInUser.getHighestRoleLevel();
+		int userHighestRoleLevel = user.get().getHighestRoleLevel();
+		
+		boolean isRoot = loggedInUser.hasRole(RoleType.ROLE_ROOT);
 
-		if (loggedInUser.getUsername().equals(Consts.SYS_ADMIN_USER_NAME)) {
-			if (updateUserDTO.getUsername() != null &&
-				!updateUserDTO.getUsername().equals(Consts.SYS_ADMIN_USER_NAME)) {
-				throw new ResponseStatusException(HttpStatus.CONFLICT,
-					"Error: Admin username cannot be modified! " +
-						String.format("You are trying to modify username '%s' to '%s'.", Consts.SYS_ADMIN_USER_NAME, updateUserDTO.getUsername()));
-			}
-			if (updateUserDTO.getRoles() != null &&
-				!updateUserDTO.getRoles().stream().anyMatch(r -> r.getName().equals(Role.RoleEnum.ROLE_ADMIN))) {
-				throw new DataIntegrityViolationException("Unable to alter sysadmin role! Admin role must be included!");
-			}
+		if (loggedInUser.getId() != id && loggedInUserHighestRoleLevel <= userHighestRoleLevel) {
+			throw new AccessDeniedException(
+				"You are not allowed to alter users with a higher or the same role then yours!");
 		}
-		else if (!isAdmin && loggedInUser.getId() != id) {
-			throw new AccessDeniedException("You are not authorized to modify other user account!");
-		}
-		else if (!isAdmin && updateUserDTO.getRoles() != null
-			&& !loggedInUser.roleMatched(updateUserDTO.getRoles())) {
-			throw new AccessDeniedException("You are not authorized to modify roles!");
+		
+		if (updateUserDTO.getRoles() != null && loggedInUser.getId() == id &&
+			!loggedInUser.roleMatched(updateUserDTO.getRoles())) {
+			throw new AccessDeniedException("You are not allowed to modify roles of your own!");
 		}
 
 		return user.map(savedUser -> {
 			if (updateUserDTO.getUsername() != null) {
+				if (isRoot) {
+					throw new AccessDeniedException("You are not allowed to alter root username!");
+				}
 				savedUser.setUsername(updateUserDTO.getUsername());
 			}
 
-			// If user change their own password, then ...
+			// If user change their own password, then old password must match the current password
 			if (loggedInUser.getId() == id) {
 				if (updateUserDTO.getOldPassword() != null && updateUserDTO.getNewPassword() != null) {
 					if (passwordEncoder.matches(updateUserDTO.getOldPassword(), user.get().getPassword())) {
@@ -168,11 +162,9 @@ public class UserController {
 					}
 				}
 			}
-			// If admin user change other password, then ...
-			else if (isAdmin) {
-				if (updateUserDTO.getNewPassword() != null) {
-					savedUser.setPassword(passwordEncoder.encode(updateUserDTO.getNewPassword()));
-				}
+			// Altering other users with a lower role level.
+			else {
+				savedUser.setPassword(passwordEncoder.encode(updateUserDTO.getNewPassword()));
 			}
 			
 			if (updateUserDTO.getResetPasswordRequired() != null) {
@@ -213,12 +205,12 @@ public class UserController {
 			@Content(mediaType = "application/json", schema = @Schema(implementation = DefaultExceptionDTO.class))
 		}),
 	})
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasRole('ADMIN')")
 	@ResponseStatus(HttpStatus.NO_CONTENT) // 204
 	@DeleteMapping("/{id}")
 	public void deleteUser(@PathVariable("id") Long id) {
 		User loggedInUser = SpringUtils.getAndValidateUser();
-		if (loggedInUser.getUsername() == Consts.SYS_ADMIN_USER_NAME) {
+		if (loggedInUser.getUsername() == Consts.ROOT_USER_NAME) {
 			throw new DataIntegrityViolationException("Unable to delete sysadmin user! sysadmin user should never be deleted!");
 		}
 		userService.deleteById(id);
@@ -234,7 +226,7 @@ public class UserController {
 			@Content(mediaType = "application/json", schema = @Schema(implementation = DefaultExceptionDTO.class))
 		}),
 	})
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/page")
 	public ResponseEntity<List<User>> getUserListAndSortBy(
 		@RequestParam(name = "pageNo", required = false) Integer pageNo,

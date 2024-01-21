@@ -5,6 +5,7 @@ import org.smartblackbox.springbootdemo.datamodel.auth.Role;
 import org.smartblackbox.springbootdemo.datamodel.auth.User;
 import org.smartblackbox.springbootdemo.datamodel.dto.SignInDTO;
 import org.smartblackbox.springbootdemo.datamodel.dto.SignUpDTO;
+import org.smartblackbox.springbootdemo.datamodel.enums.RoleType;
 import org.smartblackbox.springbootdemo.datamodel.response.SingleMessageDTO;
 import org.smartblackbox.springbootdemo.datamodel.response.UserDTO;
 import org.smartblackbox.springbootdemo.datamodel.response.exception.DefaultExceptionDTO;
@@ -14,7 +15,6 @@ import org.smartblackbox.springbootdemo.utils.SpringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -116,11 +116,10 @@ public class AuthenticationController {
 					@Content(mediaType = "application/json", schema = @Schema(implementation = DefaultExceptionDTO.class))
 			}),
 	})
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@PostMapping("/signup")
 	public ResponseEntity<UserDTO> signUp(@RequestBody SignUpDTO registerUserDTO) {
 		SpringUtils.getAndValidateUser();
-		Role role = roleRepository.findByRole(Role.RoleEnum.ROLE_USER).get();
+		Role role = roleRepository.findByRole(RoleType.ROLE_USER).get();
 		User registeredUser = authenticationService.signup(registerUserDTO, role);
 
 		UserDTO userDTO = modelMapper.map(registeredUser, UserDTO.class);

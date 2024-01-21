@@ -1,5 +1,7 @@
 package org.smartblackbox.springbootdemo.datamodel.response;
 
+import org.smartblackbox.springbootdemo.datamodel.enums.RoleType;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,17 +16,10 @@ import lombok.Data;
 @Data
 public class RoleDTO {
 
-	public static enum RoleEnum {
-		  ROLE_USER,
-		  ROLE_MODERATOR,
-		  ROLE_ADMIN
-	}
-
-	
 	@JsonProperty
 	private Integer id;
 
 	@JsonProperty
-	private RoleEnum name;
+	private RoleType type;
 
 }

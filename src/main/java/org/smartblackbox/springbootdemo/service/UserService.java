@@ -94,9 +94,23 @@ public class UserService {
 		List<Role> roles = repository.getAllRoles(id);
 
 		for (Role role : roles) {
-			result += (result.isEmpty()? "" : ", ") + role.getName().toString(); 
+			result += (result.isEmpty()? "" : ", ") + role.getType().getName(); 
 		}
 		return result;
 	}
 
+//	public int getHighestRoleLevel(int id) {
+//		int result = 0;
+//		List<Role> roles = repository.getAllRoles(id);
+//
+//		for (Role role : roles) {
+//			if (role.getType().getLevel() > result) result = role.getType().getLevel();
+//		}
+//		return result;
+//	}
+//	
+//	public RoleType getHighestRole(int id) {
+//		return RoleType.byOrdinal(getHighestRoleLevel(id));
+//	}
+	
 }

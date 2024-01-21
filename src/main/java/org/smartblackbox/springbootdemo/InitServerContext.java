@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.smartblackbox.springbootdemo.datamodel.auth.Role;
 import org.smartblackbox.springbootdemo.datamodel.auth.User;
+import org.smartblackbox.springbootdemo.datamodel.enums.RoleType;
 import org.smartblackbox.springbootdemo.repository.RoleRepository;
 import org.smartblackbox.springbootdemo.service.UserService;
 import org.smartblackbox.springbootdemo.utils.Consts;
@@ -40,32 +41,43 @@ public class InitServerContext {
 	public void init() {
 		log.info("init()");
 		
+		Role roleRoot;
 		Role roleAdmin;
 		Role roleUser;
 		Optional<Role> role;
 
-		role = roleRepository.findByRole(Role.RoleEnum.ROLE_ADMIN);
+		role = roleRepository.findByRole(RoleType.ROLE_ROOT);
+		if (role.isEmpty()) {
+			roleRoot = new Role();
+			roleRoot.setType(RoleType.ROLE_ROOT);
+			roleRepository.save(roleRoot);
+		}
+		else {
+			roleRoot = role.get();
+		}
+		
+		role = roleRepository.findByRole(RoleType.ROLE_ADMIN);
 		if (role.isEmpty()) {
 			roleAdmin = new Role();
-			roleAdmin.setName(Role.RoleEnum.ROLE_ADMIN);
+			roleAdmin.setType(RoleType.ROLE_ADMIN);
 			roleRepository.save(roleAdmin);
 		}
 		else {
 			roleAdmin = role.get();
 		}
-		
-		role = roleRepository.findByRole(Role.RoleEnum.ROLE_USER);
+
+		role = roleRepository.findByRole(RoleType.ROLE_USER);
 		if (role.isEmpty()) {
 			roleUser = new Role();
-			roleUser.setName(Role.RoleEnum.ROLE_USER);
+			roleUser.setType(RoleType.ROLE_USER);
 			roleRepository.save(roleUser);
 		}
 		else {
 			roleUser = role.get();
 		}
 
-		String username = Consts.SYS_ADMIN_USER_NAME;
-		String password = Consts.SYS_ADMIN_DEFAULT_PASSWORD;
+		String username = Consts.ROOT_USER_NAME;
+		String password = Consts.SYS_ROOT_DEFAULT_PASSWORD;
 
 		Optional<User> sysAdminUser = userService.findByUsername(username);
 		
@@ -78,7 +90,7 @@ public class InitServerContext {
 					.resetPasswordRequired(true)
 					.build();
 
-			List<Role> roles = Arrays.asList(roleAdmin, roleUser);
+			List<Role> roles = Arrays.asList(roleRoot, roleAdmin, roleUser);
 			
 			user.setRoles(roles);
 			user.setActive(true);

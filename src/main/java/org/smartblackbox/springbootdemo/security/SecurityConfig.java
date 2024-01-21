@@ -61,8 +61,9 @@ public class SecurityConfig {
 
         configuration.setAllowedOrigins(List.of(
         	"http://localhost:8080",
-        	"https://tomcat.smartblackbox.org",
-        	"http://ec2-16-171-196-252.eu-north-1.compute.amazonaws.com:8080"));
+        	"http://localhost:8888",
+        	"https://tomcat.smartblackbox.org"
+        	));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setMaxAge(3600L);

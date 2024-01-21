@@ -1,5 +1,7 @@
 package org.smartblackbox.springbootdemo.datamodel.auth;
 
+import org.smartblackbox.springbootdemo.datamodel.enums.RoleType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -24,19 +26,13 @@ import lombok.NoArgsConstructor;
 @Table(name = "roles")
 public class Role {
 
-	public static enum RoleEnum {
-		  ROLE_USER,
-		  ROLE_MODERATOR,
-		  ROLE_ADMIN
-	}
-	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 
 	@Enumerated(EnumType.STRING)
 	@Column(length = 20, unique = true)
-	private RoleEnum name;
+	private RoleType type;
 
 	public Integer getId() {
 		return id;
@@ -46,12 +42,12 @@ public class Role {
 		this.id = id;
 	}
 
-	public RoleEnum getName() {
-		return name;
+	public RoleType getType() {
+		return type;
 	}
 
-	public void setName(RoleEnum name) {
-		this.name = name;
+	public void setType(RoleType type) {
+		this.type = type;
 	}
 
 }

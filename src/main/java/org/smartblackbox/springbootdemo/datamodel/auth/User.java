@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.smartblackbox.springbootdemo.datamodel.enums.RoleType;
 import org.smartblackbox.springbootdemo.datamodel.response.RoleDTO;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -62,16 +63,13 @@ public class User implements UserDetails {
 	private boolean resetPasswordRequired;
 	
 	@ManyToMany(fetch = FetchType.EAGER)
-	//@JoinColumn(name = "user_id")
 	private List<Role> roles;
 	
 	@Column(nullable = false)
 	private boolean active;
 
-	//@Transient
 	private String token;
 	
-	//@Transient
 	private long expiredTime;
 	
 	public int getId() {
@@ -114,9 +112,9 @@ public class User implements UserDetails {
 		this.roles = roles;
 	}
 
-	public boolean hasRole(Role.RoleEnum role) {
+	public boolean hasRole(RoleType role) {
 		for (Role r : roles) {
-			if (r.getName() == role)
+			if (r.getType() == role)
 				return true;
 		}
 		return false;
@@ -125,7 +123,7 @@ public class User implements UserDetails {
 	public boolean roleMatched(List<Role> roles) {
 		if (this.roles.size() == roles.size()) {
 			for (Role role : roles) {
-				if (!this.roles.stream().anyMatch(r -> r.getName().equals(role.getName()))) {
+				if (!this.roles.stream().anyMatch(r -> r.getType().equals(role.getType()))) {
 					return false;
 				}
 			}
@@ -137,7 +135,7 @@ public class User implements UserDetails {
 	public boolean roleMatchedDTO(List<RoleDTO> roles) {
 		if (this.roles.size() == roles.size()) {
 			for (RoleDTO role : roles) {
-				if (!this.roles.stream().anyMatch(r -> r.getName().toString().equals(role.getName().name()))) {
+				if (!this.roles.stream().anyMatch(r -> r.getType().getName().equals(role.getType().name()))) {
 					return false;
 				}
 			}
@@ -146,6 +144,18 @@ public class User implements UserDetails {
 		return false;
 	}
 
+	public int getHighestRoleLevel() {
+		int result = 0;
+		for (Role role : roles) {
+			if (role.getType().getLevel() > result) result = role.getType().getLevel();
+		}
+		return result;
+	}
+
+	public RoleType getHighestRole() {
+		return RoleType.byOrdinal(getHighestRoleLevel());
+	}
+	
 	public Boolean isActive() {
 		return active;
 	}
@@ -186,7 +196,7 @@ public class User implements UserDetails {
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 		List<GrantedAuthority> authorities = new ArrayList<>();
 	    for (Role role: roles) {
-	        authorities.add(new SimpleGrantedAuthority(role.getName().toString()));
+	        authorities.add(new SimpleGrantedAuthority(role.getType().getName()));
 	    }
 	    return authorities;
 	}

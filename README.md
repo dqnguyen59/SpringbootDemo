@@ -13,7 +13,7 @@ This Springboot demo application includes the following:
  
  This demo contains a simple data class model with two tables:
  
-	- Role [ADMIN_ROLE, USER_ROLE]
+	- Role [ROOT_ROLE, ADMIN_ROLE, USER_ROLE]
 	- User
  
  Result:
@@ -30,19 +30,25 @@ using the spring.jpa.hibernate.ddl-auto=update. When running for the first time 
 For convenience, H2Database is used to have a relational database that will run in memory only.
 There's a MySQL connector included, if one wishes to test it on a real database. You can use docker/mysql_docker.sh to create a docker image/container.
 
+	mysql_docker.sh -b	# build MySQL-server docker image
+	mysql_docker.sh -n -d	# Run docker and MySQL server
+	mysql_docker.sh -q	# Stop docker and MySQL server
+
 JSON Web Token Security is used to have a secured Rest-API.
 JUnit is included to test the API end-points using MockMvc.
 
 Swagger-UI is included to document the API end-points.
 
 When the application starts, the post method InitServerContext.init() will be called 
-to perform anything that needs to be executed first! Default user "sysadmin" will be created
-during the InitServerContext.init(). The default password is "password".
-sysadmin has two roles: ROLE_ADMIN and ROLE_USER.
-When a new user is created, it will have the role ROLE_USER.
+to perform anything that needs to be executed first! Default user "root" will be created
+during the InitServerContext.init(). The default password is "secret".
+Root user has the highest role ROOT.
+When a new user sign up for an account, it can have the ADMIN or USER  role.
 
-When using the API or Swagger-UI, you must sign in as "sysadmin" first.
+When using the API or Swagger-UI, you must sign in as "root" first.
 Then you can do other things. Use the welcome-controller end-points to test the user access level.
+
+Changing root password is prohibit for this demo.
 
 Check this link for a working demo: 
 <a href="https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html">https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html</a>
@@ -59,10 +65,10 @@ Install Eclipse IDE Java EE:
     
     https://www.eclipse.org/downloads/
 
-TODO: Clone the project and open the folder in Eclipse.
+Clone this project and open the folder in Eclipse.
 
 _______________________________________________________________________________
-## Init
+## Required initializations
 
 **Install Lombok in Eclipse**
 
@@ -111,10 +117,11 @@ After successfully running the application, the link below can be accessed.
 
 http://localhost:8888/swagger-ui/index.html
 
-Username: sysadmin
-Password: password
+Username: root
 
-Change default admin password here: InitServerContext.java
+Password: secret
+
+Change default admin password here "Consts.java" SYS_ADMIN_DEFAULT_PASSWORD="secret"
 
 Check this link for a working demo: <a href="https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html">https://tomcat.smartblackbox.org/SpringbootDemo/swagger-ui/index.html</a>
 _______________________________________________________________________________

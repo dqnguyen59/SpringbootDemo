@@ -12,7 +12,7 @@ public class Consts {
 	
 	public static final int MILLISECONDS = 1000000;
 	
-	public static final String SYS_ADMIN_USER_NAME = "sysadmin";
-	public static final String SYS_ADMIN_DEFAULT_PASSWORD = "password";
+	public static final String ROOT_USER_NAME = "root";
+	public static final String SYS_ROOT_DEFAULT_PASSWORD = "secret";
 
 }

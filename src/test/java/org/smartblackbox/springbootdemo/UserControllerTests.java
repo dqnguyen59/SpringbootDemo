@@ -33,6 +33,7 @@ import org.smartblackbox.springbootdemo.datamodel.auth.User;
 import org.smartblackbox.springbootdemo.datamodel.dto.SignInDTO;
 import org.smartblackbox.springbootdemo.datamodel.dto.SignUpDTO;
 import org.smartblackbox.springbootdemo.datamodel.dto.UpdateUserDTO;
+import org.smartblackbox.springbootdemo.datamodel.enums.RoleType;
 import org.smartblackbox.springbootdemo.datamodel.response.SignInResponse;
 import org.smartblackbox.springbootdemo.datamodel.response.UserDTO;
 import org.smartblackbox.springbootdemo.service.UserService;
@@ -91,7 +92,7 @@ class UserControllerTests {
 		// Run SpringbootDemoApplication
 		SpringApplication.run(SpringbootDemoApplication.class, new String[0]);
 
-		user = userService.findByUsername(Consts.SYS_ADMIN_USER_NAME);
+		user = userService.findByUsername(Consts.ROOT_USER_NAME);
 
 		rolesString = userService.getAllRolesString(user.get().getId());
 
@@ -99,10 +100,10 @@ class UserControllerTests {
 
 	@Test
 	@Order(1)
-	public void givenSysAdminUserAndWrongPassword_whenSignIn_thenReturnToken() throws Exception {
-		log.info("givenSysAdmin_whenSignIn_thenReturnToken()");
+	public void givenSysRootUserAndWrongPassword_whenSignIn_thenReturnToken() throws Exception {
+		log.info("givenSysRoot_whenSignIn_thenReturnToken()");
 
-		username = Consts.SYS_ADMIN_USER_NAME;
+		username = Consts.ROOT_USER_NAME;
 		password = "wrongpassword";
 
 		// given - precondition or setup
@@ -125,11 +126,11 @@ class UserControllerTests {
 
 	@Test
 	@Order(2)
-	public void givenSysAdminUser_whenSignIn_thenReturnToken() throws Exception {
-		log.info("givenSysAdmin_whenSignIn_thenReturnToken()");
+	public void givenSysRootUser_whenSignIn_thenReturnToken() throws Exception {
+		log.info("givenSysRoot_whenSignIn_thenReturnToken()");
 
-		username = Consts.SYS_ADMIN_USER_NAME;
-		password = Consts.SYS_ADMIN_DEFAULT_PASSWORD;
+		username = Consts.ROOT_USER_NAME;
+		password = Consts.SYS_ROOT_DEFAULT_PASSWORD;
 
 		// given - precondition or setup
 		SignInDTO userSignIn = new SignInDTO();
@@ -199,7 +200,7 @@ class UserControllerTests {
 		log.info("givenToken_whenWelcomeUser_thenReturnWelcomeMessage()");
 
 		// given - precondition or setup
-		// Token from signed in as user sysadmin, see order(1)
+		// Token from signed in as user root, see order(1)
 
 		// when - action or behavior that we are going test
 		ResultActions response = api.perform(get("/api/v1/welcome/role/user")
@@ -220,7 +221,7 @@ class UserControllerTests {
 		log.info("givenToken_whenWelcomeAdmin_thenReturnWelcomeMessage()");
 
 		// given - precondition or setup
-		// Token from signed in as user sysadmin, see order(1)
+		// Token from signed in as user with admin role, see order(1)
 
 		// when - action or behavior that we are going test
 		ResultActions response = api.perform(get("/api/v1/welcome/role/admin")
@@ -241,9 +242,9 @@ class UserControllerTests {
 		log.info("givenToken_whenChangePassword_thenReturnOk()");
 
 		// given - precondition or setup
-		int id = 1; // Id of sysadmin
-		String oldPassword = Consts.SYS_ADMIN_DEFAULT_PASSWORD;
-		String newPassword = "secret";
+		int id = 1; // Id of root user
+		String oldPassword = Consts.SYS_ROOT_DEFAULT_PASSWORD;
+		String newPassword = "mypassword";
 
 		UpdateUserDTO updateDTO = new UpdateUserDTO();
 		updateDTO.setOldPassword(oldPassword);
@@ -286,7 +287,7 @@ class UserControllerTests {
 		log.info("givenTokenButSignedOut_whenWelcomeAdmin_thenReturnWelcomeMessage()");
 
 		// given - precondition or setup
-		// Token from signed in as user sysadmin, see order(1)
+		// Token from signed in as root user, see order(1)
 
 		// when - action or behavior that we are going test
 		ResultActions response = api.perform(get("/api/v1/welcome/role/admin")
@@ -302,11 +303,11 @@ class UserControllerTests {
 
 	@Test
 	@Order(20)
-	public void givenNewSysAdminPassword_whenSignin_thenReturnOk() throws Exception {
-		log.info("givenNewSysAdminPassword_whenSignin_thenReturnOk()");
+	public void givenNewSysRootPassword_whenSignin_thenReturnOk() throws Exception {
+		log.info("givenNewSysRootPassword_whenSignin_thenReturnOk()");
 
-		username = Consts.SYS_ADMIN_USER_NAME;
-		password = "secret";
+		username = Consts.ROOT_USER_NAME;
+		password = "mypassword";
 
 		// given - precondition or setup
 		SignInDTO userSignIn = new SignInDTO();
@@ -333,16 +334,16 @@ class UserControllerTests {
 
 	@Test
 	@Order(21)
-	public void givenMissingAdminRole_whenChangeRole_thenReturnNotOk() throws Exception {
-		log.info("givenMissingAdminRole_whenChangeRole_thenReturnNotOk()");
+	public void givenMissingRootRole_whenChangeRole_thenReturnNotOk() throws Exception {
+		log.info("givenMissingRootRole_whenChangeRole_thenReturnNotOk()");
 
 		// given - precondition or setup
-		int id = 1; // Id of sysadmin
+		int id = 1; // Id of root user
 		UpdateUserDTO updateDTO = new UpdateUserDTO();
 		
 		Role roleUser = new Role();
 		roleUser.setId(2);
-		roleUser.setName(Role.RoleEnum.ROLE_USER);
+		roleUser.setType(RoleType.ROLE_USER);
 		
 		List<Role> roles = Arrays.asList(roleUser);
 
@@ -359,23 +360,23 @@ class UserControllerTests {
 		response
 		.andDo(print())
 		.andExpect(status().is(400))
-		.andExpect(jsonPath("$.detail", is("Unable to alter sysadmin role! Admin role must be included!")));
+		.andExpect(jsonPath("$.detail", is("Unable to alter role of user root!")));
 	}
 	
 	@Test
 	@Order(22)
-	public void givenAdminRoleOnly_whenChangeRole_thenReturnOk() throws Exception {
-		log.info("givenAdminRoleOnly_whenChangeRole_thenReturnOk()");
+	public void givenRootRoleOnly_whenChangeRole_thenReturnOk() throws Exception {
+		log.info("givenRootRoleOnly_whenChangeRole_thenReturnOk()");
 
 		// given - precondition or setup
-		int id = 1; // Id of sysadmin
+		int id = 1; // Id of root user
 		UpdateUserDTO updateDTO = new UpdateUserDTO();
 		
-		Role roleAdmin = new Role();
-		roleAdmin.setId(1);
-		roleAdmin.setName(Role.RoleEnum.ROLE_ADMIN);
+		Role roleRoot = new Role();
+		roleRoot.setId(1);
+		roleRoot.setType(RoleType.ROLE_ROOT);
 		
-		List<Role> roles = Arrays.asList(roleAdmin);
+		List<Role> roles = Arrays.asList(roleRoot);
 
 		updateDTO.setRoles(roles);
 
@@ -403,22 +404,22 @@ class UserControllerTests {
 	
 	@Test
 	@Order(23)
-	public void givenAdminAndUserRole_whenChangeRole_thenReturnOk() throws Exception {
-		log.info("givenAdminAndUserRole_whenChangeRole_thenReturnOk()");
+	public void givenRootAndUserRole_whenChangeRole_thenReturnOk() throws Exception {
+		log.info("givenRootAndUserRole_whenChangeRole_thenReturnOk()");
 
 		// given - precondition or setup
-		int id = 1; // Id of sysadmin
+		int id = 1; // Id of root user
 		UpdateUserDTO updateDTO = new UpdateUserDTO();
 		
-		Role roleAdmin = new Role();
-		roleAdmin.setId(1);
-		roleAdmin.setName(Role.RoleEnum.ROLE_ADMIN);
+		Role roleRoot = new Role();
+		roleRoot.setId(1);
+		roleRoot.setType(RoleType.ROLE_ROOT);
 		
 		Role roleUser = new Role();
 		roleUser.setId(1);
-		roleUser.setName(Role.RoleEnum.ROLE_USER);
+		roleUser.setType(RoleType.ROLE_USER);
 		
-		List<Role> roles = Arrays.asList(roleAdmin, roleUser);
+		List<Role> roles = Arrays.asList(roleRoot, roleUser);
 
 		updateDTO.setRoles(roles);
 
@@ -587,7 +588,7 @@ class UserControllerTests {
 		// given - precondition or setup
 		int id = userId; // Id of TestUser1
 		String oldPassword = "TestPassword1";
-		String newPassword = "secret";
+		String newPassword = "mypassword";
 
 		UpdateUserDTO updateDTO = new UpdateUserDTO();
 		updateDTO.setOldPassword(oldPassword);
