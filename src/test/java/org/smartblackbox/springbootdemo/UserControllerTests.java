@@ -83,7 +83,7 @@ class UserControllerTests {
 
 	private String password;
 
-	private int userId;
+	private long userId;
 
 	@BeforeAll
 	void setup() {
@@ -242,7 +242,7 @@ class UserControllerTests {
 		log.info("givenToken_whenChangePassword_thenReturnOk()");
 
 		// given - precondition or setup
-		int id = 1; // Id of root user
+		long id = 1; // Id of root user
 		String oldPassword = Consts.SYS_ROOT_DEFAULT_PASSWORD;
 		String newPassword = "mypassword";
 
@@ -338,7 +338,7 @@ class UserControllerTests {
 		log.info("givenMissingRootRole_whenChangeRole_thenReturnNotOk()");
 
 		// given - precondition or setup
-		int id = 1; // Id of root user
+		long id = 1; // Id of root user
 		UpdateUserDTO updateDTO = new UpdateUserDTO();
 		
 		Role roleUser = new Role();
@@ -369,7 +369,7 @@ class UserControllerTests {
 		log.info("givenRootRoleOnly_whenChangeRole_thenReturnOk()");
 
 		// given - precondition or setup
-		int id = 1; // Id of root user
+		long id = 1; // Id of root user
 		UpdateUserDTO updateDTO = new UpdateUserDTO();
 		
 		Role roleRoot = new Role();
@@ -408,7 +408,7 @@ class UserControllerTests {
 		log.info("givenRootAndUserRole_whenChangeRole_thenReturnOk()");
 
 		// given - precondition or setup
-		int id = 1; // Id of root user
+		long id = 1; // Id of root user
 		UpdateUserDTO updateDTO = new UpdateUserDTO();
 		
 		Role roleRoot = new Role();
@@ -586,7 +586,7 @@ class UserControllerTests {
 		log.info("givenToken_whenChangePassword_thenReturnOk2()");
 
 		// given - precondition or setup
-		int id = userId; // Id of TestUser1
+		long id = userId; // Id of TestUser1
 		String oldPassword = "TestPassword1";
 		String newPassword = "mypassword";
 

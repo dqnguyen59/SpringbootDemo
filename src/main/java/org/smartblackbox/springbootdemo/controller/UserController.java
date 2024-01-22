@@ -4,16 +4,19 @@ import java.util.List;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
+import org.smartblackbox.springbootdemo.datamodel.auth.Role;
 import org.smartblackbox.springbootdemo.datamodel.auth.User;
+import org.smartblackbox.springbootdemo.datamodel.dto.SignUpDTO;
 import org.smartblackbox.springbootdemo.datamodel.dto.UpdateUserDTO;
 import org.smartblackbox.springbootdemo.datamodel.enums.RoleType;
 import org.smartblackbox.springbootdemo.datamodel.response.UserDTO;
 import org.smartblackbox.springbootdemo.datamodel.response.exception.DefaultExceptionDTO;
+import org.smartblackbox.springbootdemo.repository.RoleRepository;
+import org.smartblackbox.springbootdemo.service.AuthenticationService;
 import org.smartblackbox.springbootdemo.service.UserService;
 import org.smartblackbox.springbootdemo.utils.Consts;
 import org.smartblackbox.springbootdemo.utils.SpringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +27,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -54,7 +59,39 @@ public class UserController {
 	private UserService userService;
 
 	@Autowired
+	private RoleRepository roleRepository;
+
+	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	@Autowired
+	private AuthenticationService authenticationService;
+
+	@Operation(summary = "Add user")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "User added succesfully",
+			content = {
+					@Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))
+			}),
+			@ApiResponse(responseCode = "400", description = "Bad request", 
+			content = {
+					@Content(mediaType = "application/json", schema = @Schema(implementation = DefaultExceptionDTO.class))
+			}),
+			@ApiResponse(responseCode = "403", description = "User not authorized",
+			content = {
+					@Content(mediaType = "application/json", schema = @Schema(implementation = DefaultExceptionDTO.class))
+			}),
+	})
+	@PreAuthorize("hasRole('ADMIN')")
+	@PostMapping("/add")
+	public ResponseEntity<UserDTO> addUser(@RequestBody SignUpDTO registerUserDTO) {
+		SpringUtils.getAndValidateUser();
+		Role role = roleRepository.findByRole(RoleType.ROLE_USER).get();
+		User registeredUser = authenticationService.signup(registerUserDTO, role);
+
+		UserDTO userDTO = modelMapper.map(registeredUser, UserDTO.class);
+		return ResponseEntity.ok(userDTO);
+	}
 
 	@ApiResponses(value = {
 		@ApiResponse(responseCode = "200", description = "Find by Id", 
@@ -72,7 +109,7 @@ public class UserController {
 	})
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/{id}")
-	public ResponseEntity<UserDTO> findById(@PathVariable("id") int id) {
+	public ResponseEntity<UserDTO> findById(@PathVariable("id") long id) {
 		SpringUtils.getAndValidateUser();
 
 		UserDTO userDTO = modelMapper.map(userService.findById(id).get(), UserDTO.class);
@@ -124,7 +161,7 @@ public class UserController {
 		}),
 	})
 	@PutMapping("/{id}")
-	public ResponseEntity<UserDTO> updateUser(@PathVariable("id") int id, @RequestBody UpdateUserDTO updateUserDTO) {
+	public ResponseEntity<UserDTO> updateUser(@PathVariable("id") long id, @RequestBody UpdateUserDTO updateUserDTO) {
 		User loggedInUser = SpringUtils.getAndValidateUser();
 		Optional<User> user = userService.findById(id);
 
@@ -135,7 +172,7 @@ public class UserController {
 
 		if (loggedInUser.getId() != id && loggedInUserHighestRoleLevel <= userHighestRoleLevel) {
 			throw new AccessDeniedException(
-				"You are not allowed to alter users with a higher or the same role then yours!");
+				"You are not allowed to alter users with a higher or the same role level then yours!");
 		}
 		
 		if (updateUserDTO.getRoles() != null && loggedInUser.getId() == id &&
@@ -163,7 +200,7 @@ public class UserController {
 				}
 			}
 			// Altering other users with a lower role level.
-			else {
+			else if (updateUserDTO.getNewPassword() != null) {
 				savedUser.setPassword(passwordEncoder.encode(updateUserDTO.getNewPassword()));
 			}
 			
@@ -179,7 +216,13 @@ public class UserController {
 			}
 
 			if (updateUserDTO.getRoles() != null) {
-				savedUser.setRoles(updateUserDTO.getRoles());
+				List<Role> roles = User.validateRoles(loggedInUserHighestRoleLevel, updateUserDTO.getRoles());
+				if (roles != null) {
+					savedUser.setRoles(roles);
+				}
+				else {
+					throw new AccessDeniedException("You are not allowed to give this user a higher or the same level as yours!");
+				}
 			}
 
 			User updatedUser = userService.save(savedUser);
@@ -208,11 +251,27 @@ public class UserController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@ResponseStatus(HttpStatus.NO_CONTENT) // 204
 	@DeleteMapping("/{id}")
-	public void deleteUser(@PathVariable("id") Long id) {
+	public void deleteUser(@PathVariable("id") long id) {
 		User loggedInUser = SpringUtils.getAndValidateUser();
-		if (loggedInUser.getUsername() == Consts.ROOT_USER_NAME) {
-			throw new DataIntegrityViolationException("Unable to delete sysadmin user! sysadmin user should never be deleted!");
+
+		if (loggedInUser.getId() == id) {
+			throw new AccessDeniedException("You are not allowed to remove your own account!");
 		}
+		
+		if (loggedInUser.getUsername() == Consts.ROOT_USER_NAME) {
+			throw new AccessDeniedException("Unable to delete root user! root user should never be deleted!");
+		}
+
+		Optional<User> user = userService.findById(id);
+		int loggedInUserHighestRoleLevel = loggedInUser.getHighestRoleLevel();
+		int userHighestRoleLevel = user.get().getHighestRoleLevel();
+		
+		if (loggedInUserHighestRoleLevel <= userHighestRoleLevel) {
+			throw new AccessDeniedException(
+				"You are not allowed to remove accounts of others "
+				+ "that has role levels that is higher then yours!");
+		}
+		
 		userService.deleteById(id);
 	}
 
@@ -228,14 +287,16 @@ public class UserController {
 	})
 	@PreAuthorize("hasRole('ADMIN')")
 	@GetMapping("/page")
-	public ResponseEntity<List<User>> getUserListAndSortBy(
+	public ResponseEntity<List<UserDTO>> getUserListAndSortBy(
 		@RequestParam(name = "pageNo", required = false) Integer pageNo,
 		@RequestParam(name = "pageSize", required = false) Integer pageSize,
 		@RequestParam(name = "sortBy", required = false) String sortBy) {
 		SpringUtils.getAndValidateUser();
-		List<User> list = userService.getPage(pageNo, pageSize, sortBy);
 
-		return new ResponseEntity<List<User>>(list, new HttpHeaders(), HttpStatus.OK);
+		List<User> users = userService.getPage(pageNo, pageSize, sortBy);
+		List<UserDTO> userList = SpringUtils.mapList(modelMapper, users, UserDTO.class);
+
+		return new ResponseEntity<List<UserDTO>>(userList, new HttpHeaders(), HttpStatus.OK);
 	}	
 
 }

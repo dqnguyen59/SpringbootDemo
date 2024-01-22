@@ -24,7 +24,7 @@ public interface RoleRepository extends JpaRepository<Role, Long> {
 	public List<Role> findAllSorted();
 	
 	@Query("SELECT u FROM User u WHERE u.id = :id")
-	public Optional<Role> findById(@Param("id") int id);
+	public Optional<Role> findById(@Param("id") long id);
 	
 	@Query("SELECT r FROM Role r WHERE r.type = :type")
 	public Optional<Role> findByRole(@Param("type") RoleType type);

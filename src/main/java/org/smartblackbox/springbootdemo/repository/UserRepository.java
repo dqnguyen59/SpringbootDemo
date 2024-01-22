@@ -19,7 +19,7 @@ import org.springframework.stereotype.Repository;
 public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Query("SELECT u FROM User u WHERE u.id = :id")
-	public Optional<User> findById(@Param("id") int id);
+	public Optional<User> findById(@Param("id") long id);
 	
 	@Query("SELECT u FROM User u WHERE u.username = :username")
 	public Optional<User> findByUserName(@Param("username") String username);
@@ -31,6 +31,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 	public boolean existsByEmail(@Param("email") String email);
 
 	@Query("SELECT u.roles FROM User u WHERE u.id = :id")
-	public List<Role> getAllRoles(@Param("id") int id);
+	public List<Role> getAllRoles(@Param("id") long id);
 
 }

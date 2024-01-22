@@ -44,7 +44,7 @@ public class User implements UserDetails {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+	private long id;
 
 	@NotBlank
 	@Size(max = 20)
@@ -72,11 +72,11 @@ public class User implements UserDetails {
 	
 	private long expiredTime;
 	
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(long id) {
 		this.id = id;
 	}
 
@@ -108,6 +108,23 @@ public class User implements UserDetails {
 		return roles;
 	}
 
+	/**
+	 * If one of the roles has a higher or the same level to highestRoleLevel, then return null,
+	 * otherwise return the roles. 
+	 * 
+	 * @param highestRoleLevel
+	 * @param roles
+	 * @return 
+	 */
+	public static List<Role> validateRoles(int highestRoleLevel, List<Role> roles) {
+		for (Role role : roles) {
+			if (role.getType().getLevel() >= highestRoleLevel) {
+				return null;
+			}
+		}
+		return roles;
+	}
+	
 	public void setRoles(List<Role> roles) {
 		this.roles = roles;
 	}

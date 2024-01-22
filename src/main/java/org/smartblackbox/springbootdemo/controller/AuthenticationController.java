@@ -1,15 +1,11 @@
 package org.smartblackbox.springbootdemo.controller;
 
 import org.modelmapper.ModelMapper;
-import org.smartblackbox.springbootdemo.datamodel.auth.Role;
 import org.smartblackbox.springbootdemo.datamodel.auth.User;
 import org.smartblackbox.springbootdemo.datamodel.dto.SignInDTO;
-import org.smartblackbox.springbootdemo.datamodel.dto.SignUpDTO;
-import org.smartblackbox.springbootdemo.datamodel.enums.RoleType;
 import org.smartblackbox.springbootdemo.datamodel.response.SingleMessageDTO;
 import org.smartblackbox.springbootdemo.datamodel.response.UserDTO;
 import org.smartblackbox.springbootdemo.datamodel.response.exception.DefaultExceptionDTO;
-import org.smartblackbox.springbootdemo.repository.RoleRepository;
 import org.smartblackbox.springbootdemo.service.AuthenticationService;
 import org.smartblackbox.springbootdemo.utils.SpringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +38,6 @@ public class AuthenticationController {
 
 	@Autowired
 	private AuthenticationService authenticationService;
-
-	@Autowired
-	private RoleRepository roleRepository;
 
 	@Operation(summary = "Sign in user")
 	@ApiResponses(value = {
@@ -99,31 +92,6 @@ public class AuthenticationController {
 		catch (Exception e) {
 			throw new AccessDeniedException("");
 		}
-	}
-
-	@Operation(summary = "Sign up user")
-	@ApiResponses(value = {
-			@ApiResponse(responseCode = "200", description = "User signed up succesfully",
-			content = {
-					@Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))
-			}),
-			@ApiResponse(responseCode = "400", description = "Bad request", 
-			content = {
-					@Content(mediaType = "application/json", schema = @Schema(implementation = DefaultExceptionDTO.class))
-			}),
-			@ApiResponse(responseCode = "403", description = "User not authorized",
-			content = {
-					@Content(mediaType = "application/json", schema = @Schema(implementation = DefaultExceptionDTO.class))
-			}),
-	})
-	@PostMapping("/signup")
-	public ResponseEntity<UserDTO> signUp(@RequestBody SignUpDTO registerUserDTO) {
-		SpringUtils.getAndValidateUser();
-		Role role = roleRepository.findByRole(RoleType.ROLE_USER).get();
-		User registeredUser = authenticationService.signup(registerUserDTO, role);
-
-		UserDTO userDTO = modelMapper.map(registeredUser, UserDTO.class);
-		return ResponseEntity.ok(userDTO);
 	}
 
 }

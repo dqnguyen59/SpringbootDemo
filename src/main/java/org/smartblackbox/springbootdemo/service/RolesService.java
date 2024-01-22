@@ -28,7 +28,7 @@ public class RolesService {
 		return sorted? repository.findAllSorted() : repository.findAll();
 	}
 
-    public Optional<Role> findById(int id) {
+    public Optional<Role> findById(long id) {
         return repository.findById(id);
     }
 

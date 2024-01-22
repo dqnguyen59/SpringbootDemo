@@ -56,7 +56,7 @@ public class UserService {
         return new ArrayList<User>();
 	}
 
-    public Optional<User> findById(int id) {
+    public Optional<User> findById(long id) {
         return repository.findById(id);
     }
 
@@ -72,12 +72,12 @@ public class UserService {
         return repository.findByUserName(username);
     }
 
-	public Boolean isActive(int id) {
+	public Boolean isActive(long id) {
 		User user = findById(id).orElseThrow();
 		return user.isActive();
 	}
 
-	public boolean resetPassword(int id, ResetPasswordDTO resetPasswrodDTO) {
+	public boolean resetPassword(long id, ResetPasswordDTO resetPasswrodDTO) {
 		User user = findById(id).orElseThrow();
 		
 		if (user.getPassword() == resetPasswrodDTO.getOldPassword()) {
@@ -89,7 +89,7 @@ public class UserService {
 		return false;
 	}
 
-	public String getAllRolesString(int id) {
+	public String getAllRolesString(long id) {
 		String result = "";
 		List<Role> roles = repository.getAllRoles(id);
 
@@ -99,18 +99,4 @@ public class UserService {
 		return result;
 	}
 
-//	public int getHighestRoleLevel(int id) {
-//		int result = 0;
-//		List<Role> roles = repository.getAllRoles(id);
-//
-//		for (Role role : roles) {
-//			if (role.getType().getLevel() > result) result = role.getType().getLevel();
-//		}
-//		return result;
-//	}
-//	
-//	public RoleType getHighestRole(int id) {
-//		return RoleType.byOrdinal(getHighestRoleLevel(id));
-//	}
-	
 }

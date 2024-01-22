@@ -17,7 +17,7 @@ import lombok.Data;
 public class UserDTO {
 
 	@JsonProperty
-	private int id;
+	private long id;
 
 	@JsonProperty
 	private String username;

@@ -1,5 +1,9 @@
 package org.smartblackbox.springbootdemo.utils;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.modelmapper.ModelMapper;
 import org.smartblackbox.springbootdemo.datamodel.auth.User;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -38,5 +42,11 @@ public class SpringUtils {
 			throw new AccessDeniedException("");
 		}
 	}  	
-	
+
+	public static <S, T> List<T> mapList(ModelMapper modelMapper, List<S> source, Class<T> targetClass) {
+	    return source
+	      .stream()
+	      .map(element -> modelMapper.map(element, targetClass))
+	      .collect(Collectors.toList());
+	}
 }

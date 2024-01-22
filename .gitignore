@@ -79,4 +79,4 @@ local.properties
 
 # Personal code snippets, dump, etc
 snippets/**
-/install.sh
+*.sh
